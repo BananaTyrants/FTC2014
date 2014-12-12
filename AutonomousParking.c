@@ -1,8 +1,6 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTMotor,  HTServo)
 #pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     HTIRS,          sensorHiTechnicIRSeeker1200)
-#pragma config(Motor,  motorA,          pipeMotor,     tmotorNXT, PIDControl, encoder)
-#pragma config(Motor,  motorB,          ziptieMotor,   tmotorNXT, PIDControl, encoder)
 #pragma config(Motor,  mtr_S1_C1_1,     frontRightMotor, tmotorTetrix, openLoop, reversed, driveRight)
 #pragma config(Motor,  mtr_S1_C1_2,     frontLeftMotor, tmotorTetrix, openLoop, driveLeft)
 #pragma config(Motor,  mtr_S1_C2_1,     backRightMotor, tmotorTetrix, openLoop, reversed, driveRight)
@@ -10,7 +8,7 @@
 #pragma config(Motor,  mtr_S1_C3_1,     centerMotor,   tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C3_2,     drawerMotor,   tmotorTetrix, openLoop, encoder)
 #pragma config(Servo,  srvo_S1_C4_1,    draggerServo,         tServoStandard)
-#pragma config(Servo,  srvo_S1_C4_2,    servo2,               tServoNone)
+#pragma config(Servo,  srvo_S1_C4_2,    clickerServo,         tServoNone)
 #pragma config(Servo,  srvo_S1_C4_3,    servo3,               tServoNone)
 #pragma config(Servo,  srvo_S1_C4_4,    servo4,               tServoNone)
 #pragma config(Servo,  srvo_S1_C4_5,    servo5,               tServoNone)
@@ -24,6 +22,10 @@ tHTIRS2 irSeeker;
 
 #define wanted_magnitude 10
 #define time_constant 5
+
+#define servoPosition1 25
+#define servoPosition2 70
+#define servoPosition3 150
 
 void ir(int* magnitude, int* direction)
 {
@@ -46,6 +48,8 @@ int magnitude_to_time(int magnitude) { //returns time to drive forward based on 
 void autonomous ()
 {
 	int magnitude, direction = 0;
+
+	//center the robot on the signal
 	while(direction != 5) {
 		ir(&magnitude, &direction);
 
@@ -88,6 +92,34 @@ void autonomous ()
 			motor[backRightMotor] = 0;
 		}
 	}
+	//finish centering goal
+
+	//approach goal after centered
+	motor[frontLeftMotor] = 50;
+	motor[frontRightMotor] = 50;
+	motor[backLeftMotor] = 50;
+	motor[backRightMotor] = 50;
+	wait1Msec(magnitude_to_time(magnitude));
+	motor[frontLeftMotor] = 0;
+	motor[frontRightMotor] = 0;
+	motor[backLeftMotor] = 0;
+	motor[backRightMotor] = 0;
+	//finish approach goal after centered
+
+	//drop into center goals
+	motor[drawerMotor] = 50;
+	wait1Msec(1000);
+	motor[drawerMotor] = 0;
+
+	;
+	wait1Msec(1000);
+	servo[clickerServo] = servoPosition3;
+	//end drop into center goals
+
+	//drive into kickstand here
+	motor[centerMotor] = 30;
+	wait1Msec(250);
+	motor[centerMotor] = 0;
 
 	motor[frontLeftMotor] = 50;
 	motor[frontRightMotor] = 50;
@@ -98,16 +130,7 @@ void autonomous ()
 	motor[frontRightMotor] = 0;
 	motor[backLeftMotor] = 0;
 	motor[backRightMotor] = 0;
-
-	motor[drawerMotor] = 50;
-	wait1Msec(1000);
-	motor[drawerMotor] = 0;
-
-	motor[pipeMotor] = 50;
-	wait1Msec(1000);
-	motor[pipeMotor] = 0;
-
-	//drive into kickstand here, if possible
+	//end drive into kickstand
 
 	return;
 }

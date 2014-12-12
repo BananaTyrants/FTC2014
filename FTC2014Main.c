@@ -1,8 +1,6 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTMotor,  HTServo)
 #pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S2,     HTIRS,          sensorHiTechnicIRSeeker1200)
-#pragma config(Motor,  motorA,          pipeMotor,     tmotorNXT, PIDControl, encoder)
-#pragma config(Motor,  motorB,          ziptieMotor,   tmotorNXT, PIDControl, encoder)
 #pragma config(Motor,  mtr_S1_C1_1,     frontRightMotor, tmotorTetrix, openLoop, reversed, driveRight)
 #pragma config(Motor,  mtr_S1_C1_2,     frontLeftMotor, tmotorTetrix, openLoop, driveLeft)
 #pragma config(Motor,  mtr_S1_C2_1,     backRightMotor, tmotorTetrix, openLoop, reversed, driveRight)
@@ -10,7 +8,7 @@
 #pragma config(Motor,  mtr_S1_C3_1,     centerMotor,   tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C3_2,     drawerMotor,   tmotorTetrix, openLoop, encoder)
 #pragma config(Servo,  srvo_S1_C4_1,    draggerServo,         tServoStandard)
-#pragma config(Servo,  srvo_S1_C4_2,    servo2,               tServoNone)
+#pragma config(Servo,  srvo_S1_C4_2,    clickerServo,         tServoNone)
 #pragma config(Servo,  srvo_S1_C4_3,    servo3,               tServoNone)
 #pragma config(Servo,  srvo_S1_C4_4,    servo4,               tServoNone)
 #pragma config(Servo,  srvo_S1_C4_5,    servo5,               tServoNone)
@@ -36,15 +34,11 @@
 */
 
 // Constants are defined here. Is anyone listening?
-#define scissorUpButton 6
-#define scissorDownButton 5
-#define pickupUpButton 1
-#define pickupDownButton 2
-#define pickupOpenTime 1
+#define servoPosition1 25
+#define servoPosition2 70
+#define servoPosition3 150
 
 // Constants are no longer defined here
-
-int pickupMoving = false; //-1 for closing, 0 for staying, 1 for opening; currently not in use
 
 // VERSION 1.0.6 Compiling code that can drive all basic parts with a joystick.
 
@@ -66,39 +60,44 @@ void basicDrive(TJoystick joystick)
 
 		} //end else
 
-		/*if (joystick.joy1_x1 <= -10 || joystick.joy1_x1 >= 10) {
+		if (joystick.joy1_TopHat == 1 || joystick.joy1_TopHat == 2 || joystick.joy1_TopHat == 3) {
 
-			motor[centerMotor] = joystick.joy1_x1;
+			motor[centerMotor] = 50;
 
 		} //end if
+		else if (joystick.joy1_TopHat == 5 || joystick.joy1_TopHat == 6 || joystick.joy1_TopHat == 7) {
+			motor[centerMotor] = -50;
+		} //end else if
 		else {
 			motor[centerMotor] = 0;
-		}*/ //end else
+		} //end else
 } //end function: basicDrive
 
 void peripherals (TJoystick joystick)
 {
-	if (joystick.joy1_TopHat == 0)
-	{
-		motor[scissorMotor] = 100;
-	} else if (joystick.joy1_TopHat == 4)
-	{
-		motor[scissorMotor] = -100;
+	if (joystick.joy2_y1 <= -10 || joystick.joy2_y1 >= 10) {
+		motor[drawerMotor] = joystick.joy2_y1;
 	} else {
-		motor[scissorMotor] = 0;
+		motor[drawerMotor] = 0;
+	} //end if
+
+	if (joy2Btn(1) == 1) {
+		servo[clickerServo] = servoPosition1;
+	} else if (joy2Btn(2) == 1) {
+		servo[clickerServo] = servoPosition2;
+	} else if (joy2Btn(3) == 1) {
+		servo[clickerServo] = servoPosition3;
 	}
 
-	if (joy1Btn(pickupUpButton)) //opening
-	{
-		motor[pickupMotor] = 20;
-	} else if (joy1Btn(pickupDownButton)) //closing
-	{
-		motor[pickupMotor] = -20;
+	if (joystick.joy2_y1 >= 10) {
+		servo[draggerServo] = servo[draggerServo] + 1;
+	} else if (joystick.joy2_y1 <= -10) {
+		servo[draggerServo] = servo[draggerServo] - 1;
 	}
+
 } //end function: peripherals
 
-task main()
-{
+task main() {
 
 	while (1) {
 		getJoystickSettings(joystick);
